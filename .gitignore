@@ -50,3 +50,7 @@ Thumbs.db
 # Configuraciones locales
 *.env
 local.properties
+
+# Base de datos
+*.sql.gz
+*.dump
