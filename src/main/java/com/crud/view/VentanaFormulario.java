@@ -148,10 +148,7 @@ public class VentanaFormulario extends Stage {
     
 private void guardarRegistro() {
     try {
-        
         Map<String, String> tiposColumnas = MetadatosHelper.obtenerColumnasConTipos(conexion, nombreTabla);
-        
-        
         Map<String, Object> datos = new HashMap<>();
         
         for (Map.Entry<String, TextField> entry : camposTexto.entrySet()) {
@@ -159,46 +156,61 @@ private void guardarRegistro() {
             TextField campo = entry.getValue();
             String valorTexto = campo.getText().trim();
             
-            
             if (valorTexto.isEmpty()) {
                 datos.put(nombreCol, null);
                 continue;
             }
             
-            // Obtener tipo de dato
             String tipoDato = tiposColumnas.get(nombreCol);
             if (tipoDato != null) {
                 tipoDato = tipoDato.toLowerCase();
             }
 
-            if (tipoDato != null && (tipoDato.contains("numeric") || 
-             tipoDato.contains("decimal") || tipoDato.contains("real") || 
-             tipoDato.contains("float") || tipoDato.contains("double"))) {
-
-             datos.put(nombreCol, Double.parseDouble(valorTexto));
-
-           } else if (tipoDato != null && (tipoDato.contains("int") || 
-             tipoDato.contains("serial"))) {
-
-             datos.put(nombreCol, Integer.parseInt(valorTexto));
-
-           } else if (tipoDato != null && tipoDato.contains("bool")) {
-
-           datos.put(nombreCol, Boolean.parseBoolean(valorTexto));
-
-           }else if (tipoDato != null && tipoDato.contains("date")) {
-
-              LocalDate fecha = LocalDate.parse(valorTexto); 
-              datos.put(nombreCol, java.sql.Date.valueOf(fecha));
-
-            } else {
-             datos.put(nombreCol, valorTexto);
-            } 
-
-            
+            try {
+                if (tipoDato != null && (tipoDato.contains("int") || tipoDato.contains("serial"))) {
+                    // Enteros
+                    datos.put(nombreCol, Integer.parseInt(valorTexto));
+                    
+                } else if (tipoDato != null && (tipoDato.contains("numeric") || 
+                           tipoDato.contains("decimal") || tipoDato.contains("real") || 
+                           tipoDato.contains("float") || tipoDato.contains("double"))) {
+                    // Decimales
+                    datos.put(nombreCol, Double.parseDouble(valorTexto));
+                    
+                } else if (tipoDato != null && tipoDato.contains("bool")) {
+                    // Booleanos
+                    datos.put(nombreCol, Boolean.parseBoolean(valorTexto));
+                    
+                } else if (tipoDato != null && tipoDato.contains("timestamp")) {
+                    // TIMESTAMP - Con hora
+                    if (valorTexto.length() == 10) {
+                        // Si solo escribió fecha (YYYY-MM-DD), agregar hora default
+                        valorTexto = valorTexto + " 00:00:00";
+                    }
+                    datos.put(nombreCol, java.sql.Timestamp.valueOf(valorTexto));
+                    
+                } else if (tipoDato != null && tipoDato.contains("date")) {
+                    // DATE - Solo fecha
+                    LocalDate fecha = LocalDate.parse(valorTexto); 
+                    datos.put(nombreCol, java.sql.Date.valueOf(fecha));
+                    
+                } else {
+                    // Texto
+                    datos.put(nombreCol, valorTexto);
+                }
+                
+            } catch (NumberFormatException e) {
+                mostrarError("Error en '" + nombreCol + "': debe ser un número válido");
+                return;
+            } catch (java.time.format.DateTimeParseException e) {
+                mostrarError("Error en '" + nombreCol + "': formato de fecha inválido.\nUse: YYYY-MM-DD");
+                return;
+            } catch (IllegalArgumentException e) {
+                mostrarError("Error en '" + nombreCol + "': formato inválido.\nPara timestamp use: YYYY-MM-DD HH:MM:SS o solo YYYY-MM-DD");
+                return;
+            }
         }
         
-        // EJECUTAR INSERCIÓN O ACTUALIZACIÓN 
         boolean exito = false;
         
         if (modo == Modo.INSERTAR) {
@@ -209,56 +221,17 @@ private void guardarRegistro() {
             exito = crudController.updateRegist(valorPK, datos);
         }
         
-        // MOSTRAR RESULTADO 
         if (exito) {
             mostrarInfo("Registro guardado correctamente");
             this.close();
         } else {
             mostrarError("No se pudo guardar el registro");
-        }    
-
-    }
+        }
         
-     catch (SQLException e) {
+    } catch (SQLException e) {
         mostrarError("Error al guardar: " + e.getMessage());
-      }  catch (NumberFormatException e) {
-        mostrarError("Error: El precio debe ser un número válido (ej: 45.99)");
-       }
     }
-    
-    // Metodo: Convertir Valor según Tipo 
-    private Object convertirValor(String valorTexto, String tipoDato) {
-        if (valorTexto == null || valorTexto.isEmpty()) {
-            return null;
-        }
-        
-        // Tipos numericos enteros
-        if (tipoDato.contains("int") || tipoDato.contains("serial")) {
-            return Integer.parseInt(valorTexto);
-        }
-        
-        // Tipos numericos decimales
-        if (tipoDato.contains("numeric") || tipoDato.contains("decimal") || 
-            tipoDato.contains("real") || tipoDato.contains("double") || 
-            tipoDato.contains("float")) {
-            return Double.parseDouble(valorTexto);
-        }
-        
-        // Tipo booleano
-        if (tipoDato.contains("bool")) {
-            return Boolean.parseBoolean(valorTexto);
-        }
-        
-        // Tipo fecha
-        if (tipoDato.contains("date")) {
-            // Aquí podrías agregar conversión de fecha si es necesario
-            // Por ahora lo dejamos como String y PostgreSQL lo convierte
-            return valorTexto;
-        }
-        
-        // Por defecto, String (varchar, text, char, etc.)
-        return valorTexto;
-    }
+}
     
     
     // METODO: Mostrar Error 
