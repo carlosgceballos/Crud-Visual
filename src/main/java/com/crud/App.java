@@ -54,7 +54,6 @@ public class App extends Application {
     
     // Método para probar la conexión a PostgreSQL
     private String probarConexion() {
-        // CAMBIA ESTOS VALORES POR LOS TUYOS:
         String url = "jdbc:postgresql://localhost:5432/crud_visual";
         String usuario = "postgres";
         String password = "M@fer.98";

@@ -216,6 +216,8 @@ private void guardarRegistro() {
         } else {
             mostrarError("No se pudo guardar el registro");
         }    
+
+    }
         
      catch (SQLException e) {
         mostrarError("Error al guardar: " + e.getMessage());
