@@ -80,7 +80,7 @@ public class VentanaConexion extends Stage {
 
         //fila1: puerto
         grid.add(lblPuerto, 0, 1);
-        grid.add(txtHost, 1, 1);
+        grid.add(txtPuerto, 1, 1);
 
         //fila2: base de datos
         grid.add(lblDB, 0, 2);

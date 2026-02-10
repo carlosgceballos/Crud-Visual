@@ -32,7 +32,7 @@ public class CRUDController {
     while (rs.next()) {
       Map<String, Object> fila = new HashMap<>();
 
-      for(int i =1; i<columnCount; i++){
+      for(int i =1; i<=columnCount; i++){
         String columnName = metaData.getColumnName(i);
         Object valor = rs.getObject(i);
         fila.put(columnName, valor);
