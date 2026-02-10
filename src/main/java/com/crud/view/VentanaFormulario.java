@@ -219,10 +219,10 @@ private void guardarRegistro() {
         
      catch (SQLException e) {
         mostrarError("Error al guardar: " + e.getMessage());
-    } catch (NumberFormatException e) {
+      }  catch (NumberFormatException e) {
         mostrarError("Error: El precio debe ser un número válido (ej: 45.99)");
+       }
     }
-}
     
     // Metodo: Convertir Valor según Tipo 
     private Object convertirValor(String valorTexto, String tipoDato) {
