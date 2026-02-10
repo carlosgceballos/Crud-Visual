@@ -142,54 +142,73 @@ public class VentanaFormulario extends Stage {
     }
     
 
-    private void guardarRegistro() {
-        try {
+   //metodo guardar registro
+   
+private void guardarRegistro() {
+    try {
+        
+        Map<String, String> tiposColumnas = MetadatosHelper.obtenerColumnasConTipos(conexion, nombreTabla);
+        
+        
+        Map<String, Object> datos = new HashMap<>();
+        
+        for (Map.Entry<String, TextField> entry : camposTexto.entrySet()) {
+            String nombreCol = entry.getKey();
+            TextField campo = entry.getValue();
+            String valorTexto = campo.getText().trim();
+            
+            if (valorTexto.isEmpty()) {
+                datos.put(nombreCol, null);
+                continue;
+            }
+            
            
-            Map<String, Object> datos = new HashMap<>();
-            
-            for (Map.Entry<String, TextField> entry : camposTexto.entrySet()) {
-                String nombreCol = entry.getKey();
-                TextField campo = entry.getValue();
-                
-               
-                String valor = campo.getText().trim();
-                
-                
-                if (valor.isEmpty()) {
-                    datos.put(nombreCol, null);
-                } else {
-                   
-                    datos.put(nombreCol, valor);
-                }
-            }
-            
-            // 
-            boolean exito = false;
-            
-            if (modo == Modo.INSERTAR) {
-                
-                exito = crudController.insertRegist(datos);
-                
-            } else if (modo == Modo.EDITAR) {
-                
-                String columnaPK = MetadatosHelper.obtenerColumnaPK(conexion, nombreTabla);
-                Object valorPK = datosActuales.get(columnaPK);
-                
-                exito = crudController.updateRegist(valorPK, datos);
+            String tipoDato = tiposColumnas.get(nombreCol);
+            if (tipoDato != null) {
+                tipoDato = tipoDato.toLowerCase();
             }
             
             
-            if (exito) {
-                mostrarInfo("Registro guardado correctamente");
-                this.close(); 
-            } else {
-                mostrarError("No se pudo guardar el registro");
+            if (tipoDato != null && (tipoDato.contains("numeric") || 
+                tipoDato.contains("decimal") || tipoDato.contains("real") || 
+                tipoDato.contains("float") || tipoDato.contains("double"))) {
+                datos.put(nombreCol, Double.parseDouble(valorTexto));
+            } 
+            else if (tipoDato != null && (tipoDato.contains("int") || 
+                     tipoDato.contains("serial"))) {
+                datos.put(nombreCol, Integer.parseInt(valorTexto));
             }
             
-        } catch (SQLException e) {
-            mostrarError("Error al guardar: " + e.getMessage());
+            else {
+                datos.put(nombreCol, valorTexto);
+            }
         }
+        
+        
+        boolean exito = false;
+        
+        if (modo == Modo.INSERTAR) {
+            exito = crudController.insertRegist(datos);
+        } else if (modo == Modo.EDITAR) {
+            String columnaPK = MetadatosHelper.obtenerColumnaPK(conexion, nombreTabla);
+            Object valorPK = datosActuales.get(columnaPK);
+            exito = crudController.updateRegist(valorPK, datos);
+        }
+        
+        
+        if (exito) {
+            mostrarInfo("Registro guardado correctamente");
+            this.close();
+        } else {
+            mostrarError("No se pudo guardar el registro");
+        }
+        
+    } catch (SQLException e) {
+        mostrarError("Error al guardar: " + e.getMessage());
+    } catch (NumberFormatException e) {
+        mostrarError("Error: El precio debe ser un número válido (ej: 45.99)");
     }
+}
     
  
     private void mostrarError(String mensaje) {
