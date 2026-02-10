@@ -1,5 +1,6 @@
 package com.crud;
 
+import com.crud.view.VentanaConexion;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -20,6 +21,9 @@ public class App extends Application {
         // Botón para probar conexión
         Button btnConectar = new Button("Probar Conexión a PostgreSQL");
         btnConectar.setStyle("-fx-font-size: 14px;");
+
+         Button btnAbrirCRUD = new Button("Abrir CRUD Completo");
+        btnAbrirCRUD.setStyle("-fx-font-size: 14px; -fx-background-color: #4CAF50; -fx-text-fill: white;");
         
         // Área de texto para mostrar resultados
         TextArea txtResultado = new TextArea();
@@ -32,10 +36,14 @@ public class App extends Application {
             txtResultado.setText(resultado);
         });
         
+        btnAbrirCRUD.setOnAction(e -> {
+            VentanaConexion ventanaCRUD = new VentanaConexion();
+            ventanaCRUD.show();
+        });
         // Layout
         VBox root = new VBox(15);
         root.setPadding(new Insets(20));
-        root.getChildren().addAll(titulo, btnConectar, txtResultado);
+        root.getChildren().addAll(titulo, btnConectar, btnAbrirCRUD, txtResultado);
         
         // Escena y ventana
         Scene scene = new Scene(root, 600, 400);
